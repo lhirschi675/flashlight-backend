@@ -1,14 +1,30 @@
 package main
 
 import (
-	"flashlight-backend/api"
-	"fmt"
+	"log"
 	"net/http"
+
+	"flashlight-backend/api"
+	"flashlight-backend/db"
 )
 
 func main() {
+	if err := db.InitDB(); err != nil {
+		log.Fatalf("DB connection failed: %v", err)
+	}
+
+	sqlDB, err := db.DB.DB()
+	if err != nil {
+		log.Fatalf("Failed to get generic database object: %v", err)
+	}
+	defer sqlDB.Close()
+
+	if err := db.DB.AutoMigrate(&api.Student{}); err != nil {
+		log.Fatalf("AutoMigrate failed: %v", err)
+	}
+
 	srv := api.NewServer()
 
-	fmt.Println("Server Listening on :8080")
+	log.Println("Server started at http://localhost:8080")
 	http.ListenAndServe(":8080", srv)
 }

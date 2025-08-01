@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 )
 
 func main() {
+	fmt.Println("running main")
 	if err := db.InitDB(); err != nil {
 		log.Fatalf("DB connection failed: %v", err)
 	}

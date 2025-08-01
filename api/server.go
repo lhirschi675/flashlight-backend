@@ -20,9 +20,8 @@ type Student struct {
 	Phone     string    `json:"phone"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	StuID     string    `json:"stu_id"`
 	Age       int       `json:"age"`
-	Progress  int       `json:"progress"`
+	Grade     int       `json:"grade"`
 }
 
 type Server struct {
@@ -60,17 +59,6 @@ func (s *Server) routes() {
 	s.HandleFunc("/students", s.listStudents()).Methods("GET")
 }
 
-func (s *Server) listStudents() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var students []Student
-		if err := s.db.Find(&students).Error; err != nil {
-			http.Error(w, "Failed to list students", http.StatusInternalServerError)
-			return
-		}
-		json.NewEncoder(w).Encode(students)
-	}
-}
-
 func (s *Server) createStudent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var student Student
@@ -80,10 +68,9 @@ func (s *Server) createStudent() http.HandlerFunc {
 		}
 
 		student.ID = uuid.New()
-		student.StuID = "STU" + student.ID.String()
 		student.CreatedAt = time.Now()
 		student.UpdatedAt = time.Now()
-		student.Progress = 0
+		student.Grade = 0
 
 		if err := s.db.Create(&student).Error; err != nil {
 			http.Error(w, "Failed to create student", http.StatusInternalServerError)
@@ -110,5 +97,16 @@ func (s *Server) getStudent() http.HandlerFunc {
 		}
 
 		json.NewEncoder(w).Encode(student)
+	}
+}
+
+func (s *Server) listStudents() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var students []Student
+		if err := s.db.Find(&students).Error; err != nil {
+			http.Error(w, "Failed to list students", http.StatusInternalServerError)
+			return
+		}
+		json.NewEncoder(w).Encode(students)
 	}
 }

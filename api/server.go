@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
 
@@ -35,21 +36,19 @@ func NewServer() *Server {
 		db:     db.DB,
 	}
 
-	s.Use(mux.CORSMethodMiddleware(s.Router))
-	s.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			if r.Method == http.MethodOptions {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	})
-
 	s.routes()
+
+	handler := cors.New(cors.Options{
+		// Replace http://localhost:5173 with the path you want to allow
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type"},
+		AllowCredentials: true,
+	}).Handler(s.Router)
+
+	s.Router = mux.NewRouter()
+	s.PathPrefix("/").Handler(handler)
+
 	return s
 }
 
